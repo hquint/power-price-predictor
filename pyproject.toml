@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "power-price-predictor"
+version = "0.1.0"
+description = "Random Forest model to predict short-term power prices with FastAPI"
+authors = ["Helio <hquintanilhajr@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "app" }
+]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.32.3"
+numpy = "^2.2.4"
+scikit-learn = "^1.6.1"
+fastapi = "^0.109.2"
+uvicorn = "^0.27.1"
+joblib = "^1.4.2"
+pandas = "^2.2.3"
+matplotlib = "^3.10.1"
+ipykernel = "^6.29.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+ruff = "^0.11.4"
+black = "^25.1.0"
+pre-commit = "^4.2.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
