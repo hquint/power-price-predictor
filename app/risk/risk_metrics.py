@@ -30,11 +30,11 @@ class RiskMetrics:
                     .quantile(1.0 - self.confidence_level)
                 )
 
-            df = pd.concat([self.df, var_df], axis=1).iloc[
+            self.var_df = pd.concat([self.df, var_df], axis=1).iloc[
                 self.lookback_period + 1 :
             ]  # remove the first loockback periods nan (true for all assets)
 
-            return df
+            return self.var_df
 
     @staticmethod
     def _historical_cvar(arr, alpha):
@@ -101,31 +101,27 @@ class RiskMetrics:
 
     def plot_var_breaches(self, asset: str):
 
-        if self.breaches is None or len(self.breaches) == 0:
+        if not hasattr(self, "breaches"):
             self.backtest_var()
 
         breaches = self.breaches[asset]
 
+        df = self.var_df
+
         plt.figure(figsize=(12, 5))
-        plt.plot(self.df.index, self.df[asset], label="Returns")
+        plt.plot(df.index, df[asset], label="Returns")
         plt.plot(
-            self.df.index,
-            self.df[f"VaR_{asset}"],
+            df.index,
+            df[f"VaR_{asset}"],
             label=f"{int(self.confidence_level*100)}% VaR",
             linestyle="--",
         )
         plt.scatter(
-            self.df.index[breaches],
-            self.df[asset][breaches],
+            df.index[breaches],
+            df[asset][breaches],
             color="red",
             label="Breaches",
             zorder=5,
-        )
-        plt.axhline(
-            y=(1 - self.confidence_level),
-            color="gray",
-            linestyle=":",
-            label="Expected Threshold",
         )
 
         plt.title(f"VaR Breaches for {asset}")
