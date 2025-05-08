@@ -1,10 +1,11 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 import joblib
 
 from app.config import DATA_PATH, MODEL_PATH
-from app.features.engineer import create_features
+from app.features.engineer import FeatureEngineering
 from app.models.pipeline import build_pipeline
 
 
@@ -21,30 +22,42 @@ def train():
 
     # Load the dataset
     df = pd.read_csv(DATA_PATH, parse_dates=["timestamp"])
-    df = create_features(df)
 
-    features = [
-        "temperature",
-        "wind_speed",
-        "demand_forecast",
-        "hour_sin",
-        "hour_cos",
-        "wind_temp_ratio",
-    ]
+    # Feature engineering
+    # Assuming the dataset has a 'timestamp' column and a target column 'price_next_hour'
+    feature_engineering = FeatureEngineering(lags=[1, 2, 3], rolling=[3, 6, 24])
+    df = feature_engineering.transform(df, target_column="price_next_hour")
+
+    features = feature_engineering.get_feature_names(df)
     target = "price_next_hour"
 
     # Ensure the target variable is not in the features
     X = df[features]
     y = df[target]
 
+    numeric = [
+        col
+        for col in X.columns
+        if X[col].dtype in [np.float64, np.int64] and col != "is_weekend"
+    ]
+    binary = ["is_weekend"]
+    categorical = []  # or ["day_of_week"], and so on
+
+    # Build the pipeline and train the model
+    pipeline = build_pipeline(
+        numeric_features=numeric,
+        binary_features=binary,
+        categorical_features=categorical,
+    )
+
     # Split the data into training and testing sets
     # Using shuffle=False to maintain the time series order
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, shuffle=False
     )
+    print(f"Training on {len(X_train)} samples, testing on {len(X_test)} samples")
 
-    # Build the pipeline and train the model
-    pipeline = build_pipeline(features)
+    # Train the pipeline
     pipeline.fit(X_train, y_train)
 
     # Evaluate the model
