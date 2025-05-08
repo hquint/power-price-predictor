@@ -3,18 +3,18 @@ import numpy as np
 
 
 class FeatureEngineering:
-    def __init__(self, lags: list[int] = None, rolling: list[int] = None):
+    def __init__(self, lags: list[int] = None, rolling_windows: list[int] = None):
         """
         Initialize the FeatureEngineering class.
 
         Parameters:
         - lags: List of lag values for creating lag features
-        - rolling: List of rolling window sizes for creating rolling features
+        - rolling_windows: List of rolling window sizes for creating rolling features
         """
         self.lags = lags or [1, 2, 3]
-        self.rolling = rolling or [3, 6]
+        self.rolling = rolling_windows or [3, 6]
 
-    def add_time_features(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _add_time_features(self, df: pd.DataFrame) -> pd.DataFrame:
 
         df["hour_sin"] = np.sin(2 * np.pi * df["hour_of_day"] / 24)
         df["hour_cos"] = np.cos(2 * np.pi * df["hour_of_day"] / 24)
@@ -22,13 +22,13 @@ class FeatureEngineering:
 
         return df
 
-    def add_lag_features(self, df: pd.DataFrame, target_column: str) -> pd.DataFrame:
+    def _add_lag_features(self, df: pd.DataFrame, target_column: str) -> pd.DataFrame:
         for lag in self.lags:
             df[f"{target_column}_lag{lag}"] = df[target_column].shift(lag)
 
         return df
 
-    def add_rolling_features(
+    def _add_rolling_features(
         self, df: pd.DataFrame, target_column: str
     ) -> pd.DataFrame:
         for window in self.rolling:
@@ -41,7 +41,7 @@ class FeatureEngineering:
 
         return df
 
-    def add_cross_features(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _add_cross_features(self, df: pd.DataFrame) -> pd.DataFrame:
         df["wind_temp_ratio"] = df["wind_speed"] / (df["temperature"] + 1e-6)
 
         return df
@@ -60,10 +60,10 @@ class FeatureEngineering:
         - Transformed DataFrame with new features
         """
         df = df.copy()
-        df = self.add_time_features(df)
-        df = self.add_lag_features(df, target_column)
-        df = self.add_rolling_features(df, target_column)
-        df = self.add_cross_features(df)
+        df = self._add_time_features(df)
+        df = self._add_lag_features(df, target_column)
+        df = self._add_rolling_features(df, target_column)
+        df = self._add_cross_features(df)
         df.dropna(inplace=True)
 
         return df
