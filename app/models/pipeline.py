@@ -1,10 +1,12 @@
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
 
-def build_pipeline(numeric_features, binary_features=None, categorical_features=None):
+def build_pipeline(
+    numeric_features, binary_features=None, categorical_features=None, model_type="rf"
+):
     """
     1. Build a machine learning pipeline with preprocessing and model training.
     2. The pipeline includes a StandardScaler for numeric features and a RandomForestRegressor.
@@ -14,9 +16,7 @@ def build_pipeline(numeric_features, binary_features=None, categorical_features=
     """
 
     numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
-
     binary_transformer = "passthrough"
-
     categorical_transfomer = (
         OneHotEncoder(handle_unknown="ignore") if categorical_features else "drop"
     )
@@ -24,20 +24,26 @@ def build_pipeline(numeric_features, binary_features=None, categorical_features=
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", numeric_transformer, numeric_features),
-            ("binary", binary_transformer, binary_features, binary_features or []),
+            ("binary", binary_transformer, binary_features or []),
             (
                 "cat",
                 categorical_transfomer,
-                categorical_features,
                 categorical_features or [],
             ),
         ]
     )
 
+    if model_type == "rf":
+        model = RandomForestRegressor(n_estimators=100, random_state=0)
+    elif model_type == "gb":
+        model = HistGradientBoostingRegressor(max_iter=100, random_state=0)
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
+
     pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("model", RandomForestRegressor(n_estimators=100, random_state=0)),
+            ("model", model),
         ]
     )
 
