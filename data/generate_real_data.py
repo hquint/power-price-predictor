@@ -4,11 +4,6 @@ from entsoe import EntsoePandasClient
 import requests
 import pandas as pd
 
-# Load ENTSO-E API key from .env
-load_dotenv()
-api_key = os.getenv("ENTSOE_API_KEY")
-client = EntsoePandasClient(api_key=api_key)
-
 # Config
 country_code = "DE_LU"
 latitude = 52.52  # Berlin
@@ -23,7 +18,13 @@ end = pd.Timestamp(end_date, tz=tz)
 
 
 def fetch_entsoe_data():
+    # Load ENTSO-E API key from .env
+    load_dotenv()
+    api_key = os.getenv("ENTSOE_API_KEY")
+    client = EntsoePandasClient(api_key=api_key)
+
     print("📡 Fetching day-ahead prices...")
+
     prices = client.query_day_ahead_prices(country_code, start=start, end=end)
 
     print("📡 Fetching actual total load...")
