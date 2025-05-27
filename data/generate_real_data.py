@@ -81,13 +81,13 @@ def fetch_open_meteo_data():
     return df_weather
 
 
-def merge_and_save():
+def merge_and_save(output_path="data/power_market_real_data.csv"):
     df_prices = fetch_entsoe_data()
     df_weather = fetch_open_meteo_data()
 
     print("🔄 Merging datasets...")
     df = pd.merge(df_prices, df_weather, on="timestamp", how="inner")
-    df.to_csv("data/power_market_real_data.csv", index=False)
+    df.to_csv(output_path, index=False)
     print("✅ Saved to data/power_market_real_data.csv")
     print(df.head())
 
